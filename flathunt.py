@@ -32,24 +32,30 @@ while True:
     cls()
     print("Checking for new flats...")
 
-    with open('flats.txt', 'r') as f:
-        old_flats = f.readlines()
-    new_flats = []
+    try:
+        with open('flats.txt', 'r') as f:
+            old_flats = f.readlines()
+        new_flats = []
 
-    for i in range (3):
-        url_wg_gesucht = url_wg_begin + str(i) + url_wg_end
-        r = requests.get(url_wg_gesucht)
-        soup = BeautifulSoup(r.text, features="html.parser")
+        for i in range (3):
+            url_wg_gesucht = url_wg_begin + str(i) + url_wg_end
+            r = requests.get(url_wg_gesucht)
+            soup = BeautifulSoup(r.text, features="html.parser")
 
-        for flat in soup.find_all('a', href=True):
-            link = "https://www.wg-gesucht.de/"+flat["href"]
-            regex = re.compile("https://www.wg-gesucht.de/wg.[a-zA-Z0-9_-]+.[0-9]+.html")
-            checkFlat(link, regex)
+            for flat in soup.find_all('a', href=True):
+                link = "https://www.wg-gesucht.de/"+flat["href"]
+                regex = re.compile("https://www.wg-gesucht.de/wg.[a-zA-Z0-9_-]+.[0-9]+.html")
+                checkFlat(link, regex)
 
-    print("Found " + str(len(new_flats)) + " new flats.")
+        print("Found " + str(len(new_flats)) + " new flats.")
 
-    if(new_flats != []):
-        print("Sending new flats to Telegram...")
-        telegram_send.send(messages=new_flats)
+        if(new_flats != []):
+            print("Sending new flats to Telegram...")
+            telegram_send.send(messages=new_flats)
 
-    sleep()
+        sleep()
+
+    except:
+        print("Error while checking for new flats.")
+        telegram_send.send(messages=["Error while checking for new flats."])
+        sleep()
