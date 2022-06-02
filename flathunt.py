@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import requests
 import re
 import time
@@ -47,6 +49,7 @@ while True:
     print("Found " + str(len(new_flats)) + " new flats.")
 
     if(new_flats != []):
+        print("Sending new flats to Telegram...")
         telegram_send.send(messages=new_flats)
 
     sleep()
