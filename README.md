@@ -1,7 +1,7 @@
 ## Install:
 - run: ``` pip install -r requirements.txt ``` to install required packages
 
-## usage
+## Usage
  - setup telegram-send with your bot (instructions: https://pypi.org/project/telegram-send/)
  - fill the urls in the script with your search urls
  - run: ``` python flathunt.py ```
