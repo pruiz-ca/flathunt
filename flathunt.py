@@ -7,7 +7,7 @@ import telegram_send
 from bs4 import BeautifulSoup
 import os
 
-interval_minutes = 5
+interval_minutes = 1
 url_wg_begin = "https://www.wg-gesucht.de/en/wg-zimmer-in-Berlin.8.0.1."
 url_wg_end = ".html?offer_filter=1&city_id=8&sort_column=3&noDeact=1&dFr=1656194400&dTo=1657490400&radLat=52.487490882485&radLng=13.444272279739&categories%5B%5D=0&rent_types%5B%5D=0&rMax=600&radAdd=Bouch%C3%A9stra%C3%9Fe+39&radDis=5000&img_only=1&pagination=1&pu="
 
