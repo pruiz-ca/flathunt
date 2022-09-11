@@ -9,13 +9,13 @@ import dotenv
 from bs4 import BeautifulSoup
 import os
 
-dotenv.load_dotenv()
 
 # if .env file is not present, print error and exit
 if not os.path.exists('.env'):
     print("Please create a .env file with env_example as template and fill in your credentials")
     exit(1)
 
+dotenv.load_dotenv()
 email = os.getenv('EMAIL')
 pwd = os.getenv('PASSWORD')
 url_wg_gesucht = os.getenv('URL_WG_GESUCHT')
