@@ -18,7 +18,7 @@ dotenv.load_dotenv()
 email = os.getenv('EMAIL')
 pwd = os.getenv('PASSWORD')
 url_wg_gesucht = os.getenv('URL_WG_GESUCHT')
-interval_minutes = os.getenv('INTERVAL_MINUTES')
+interval_minutes = int(os.getenv('INTERVAL_MINUTES'))
 
 
 def cls():
