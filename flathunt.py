@@ -3,15 +3,18 @@
 import requests
 import re
 import time
+import json
 import telegram_send
+import dotenv
 from bs4 import BeautifulSoup
 import os
 
-interval_minutes = 1
-url_wg_begin = "https://www.wg-gesucht.de/en/wg-zimmer-in-Berlin.8.0.1."
-url_wg_end = ".html?offer_filter=1&city_id=8&sort_column=3&noDeact=1&dFr=1661724000&dTo=1663192800&radLat=52.487490882485&radLng=13.444272279739&categories%5B%5D=0&rent_types%5B%5D=0&rMax=600&radAdd=Bouch%C3%A9stra%C3%9Fe+39&radDis=6000&img_only=1&pagination=1&pu="
+dotenv.load_dotenv()
 
-# url_wg_end = ".html?offer_filter=1&city_id=8&sort_column=3&sort_order=0&noDeact=1&dFr=1661724000&dTo=1663192800&categories%5B%5D=0&categories%5B%5D=1&rent_types%5B%5D=0&rMax=700&radAdd=Harzer+Straße+39%2C+Berlin%2C+Germany%2C+12059&radDis=5000&pagination=1&pu="
+interval_minutes = 5
+email = os.getenv('EMAIL')
+pwd = os.getenv('PASSWORD')
+url_wg_gesucht = "https://www.wg-gesucht.de/wohnraumangebote.html?user_filter_id=6891843&ad_type=0&offer_filter=1&city_id=8&noDeact=1&dFr=1664056800&dTo=1665352800&radLat=52.4869099&radLng=13.4452862&rMax=900&radAdd=Harzer+Stra%C3%9Fe%2C+Berlin%2C+Germany%2C+12059&radDis=5000&sin=1&img_only=1&categories=0%2C1&rent_types=0"
 
 
 def cls():
@@ -27,15 +30,53 @@ def checkFlat(link, regex):
 
 def sleep():
     for i in range(interval_minutes):
-        print("Sleeping for "+str(interval_minutes-i)+" minutes...")
+        print("Sleeping for " + str(interval_minutes - i) + " minutes...")
         time.sleep(60)
+
+
+def login(session):
+    url = "https://www.wg-gesucht.de/ajax/sessions.php?action=login"
+
+    payload = json.dumps({
+        "login_email_username": f"{email}",
+        "login_password": f"{pwd}",
+        "login_form_auto_login": "1",
+        "display_language": "de"
+    })
+
+    headers = {
+        'sec-ch-ua': '"Microsoft Edge";v="105", " Not;A Brand";v="99", "Chromium";v="105"',
+        'DNT': '1',
+        'sec-ch-ua-mobile': '?0',
+        'X-Authorization': 'Bearer',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.33',
+        'X-Dev-Ref-No': '',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Client-Id': 'wg_desktop_website',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-User-Id': '',
+        'sec-ch-ua-platform': '"macOS"',
+        'host': 'www.wg-gesucht.de'
+    }
+
+    session.get("https://www.wg-gesucht.de/en/")
+    r = session.post(url, headers=headers, data=payload)
+    if (r.status_code == 200):
+        print("Login successful")
+    else:
+        print("Login failed")
+        telegram_send.send(messages=["Login Failed"])
 
 
 with open('flats.txt', 'a+') as f:
     pass
 
+session = requests.Session()
+login(session)
+
+cls()
 while True:
-    cls()
     print("Checking for new flats...")
 
     try:
@@ -43,16 +84,26 @@ while True:
             old_flats = f.readlines()
         new_flats = []
 
-        for i in range(10):
-            url_wg_gesucht = url_wg_begin + str(i) + url_wg_end
-            r = requests.get(url_wg_gesucht)
-            soup = BeautifulSoup(r.text, features="html.parser")
+        header = {
+            'sec-ch-ua': '"Microsoft Edge";v="105", " Not;A Brand";v="99", "Chromium";v="105"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"macOS"',
+            'Upgrade-Insecure-Requests': '1',
+            'DNT': '1',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.33',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'host': 'www.wg-gesucht.de',
+            'Cookie': f'PHPSESSID={session.cookies["PHPSESSID"]}; X-Access-Token={session.cookies["X-Access-Token"]}; X-Client-Id=wg_desktop_website; X-Dev-Ref-No={session.cookies["X-Dev-Ref-No"]}; X-Refresh-Token={session.cookies["X-Refresh-Token"]}; dev_ref_no={session.cookies["dev_ref_no"]}; last_cat=0%2C1; last_city=8; last_type=0; login_token={session.cookies["login_token"]}'
+        }
 
-            for flat in soup.find_all('a', href=True):
-                link = "https://www.wg-gesucht.de/"+flat["href"]
-                regex = re.compile(
-                    "https://www.wg-gesucht.de/wg.[a-zA-Z0-9_-]+.[0-9]+.html")
-                checkFlat(link, regex)
+        r = session.get(url_wg_gesucht, headers=header)
+        soup = BeautifulSoup(r.text, features="html.parser")
+
+        for flat in soup.find_all('a', href=True):
+            link = "https://www.wg-gesucht.de/" + flat["href"]
+            regex = re.compile(
+                "https://www.wg-gesucht.de/wg.[a-zA-Z0-9_-]+.[0-9]+.html")
+            checkFlat(link, regex)
 
         print("Found " + str(len(new_flats)) + " new flats.")
 
@@ -64,4 +115,5 @@ while True:
     except:
         print("Error while checking for new flats.")
         telegram_send.send(messages=["Error while checking for new flats."])
+        login(session)
         sleep()
