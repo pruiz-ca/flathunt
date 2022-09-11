@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 import os
 
 
-# if .env file is not present, print error and exit
 if not os.path.exists('.env'):
     print("Please create a .env file with env_example as template and fill in your credentials")
     exit(1)
