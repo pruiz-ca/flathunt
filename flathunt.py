@@ -11,10 +11,15 @@ import os
 
 dotenv.load_dotenv()
 
-interval_minutes = 5
+# if .env file is not present, print error and exit
+if not os.path.exists('.env'):
+    print("Please create a .env file with env_example as template and fill in your credentials")
+    exit(1)
+
 email = os.getenv('EMAIL')
 pwd = os.getenv('PASSWORD')
-url_wg_gesucht = "https://www.wg-gesucht.de/wohnraumangebote.html?user_filter_id=6891843&ad_type=0&offer_filter=1&city_id=8&noDeact=1&dFr=1664056800&dTo=1665352800&radLat=52.4869099&radLng=13.4452862&rMax=900&radAdd=Harzer+Stra%C3%9Fe%2C+Berlin%2C+Germany%2C+12059&radDis=5000&sin=1&img_only=1&categories=0%2C1&rent_types=0"
+url_wg_gesucht = os.getenv('URL_WG_GESUCHT')
+interval_minutes = os.getenv('INTERVAL_MINUTES')
 
 
 def cls():

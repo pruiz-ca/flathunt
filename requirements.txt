@@ -1,5 +1,4 @@
 requests
 telegram-send
 beautifulsoup4
-json
 dotenv
